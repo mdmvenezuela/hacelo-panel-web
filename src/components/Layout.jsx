@@ -3,12 +3,14 @@ import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../lib/auth';
 
 const NAV = [
-  { to: '/',          icon: '▦',  label: 'Dashboard',  action: 'dashboard'  },
-  { to: '/users',     icon: '👥', label: 'Usuarios',   action: 'users'      },
-  { to: '/kyc',       icon: '🪪', label: 'KYC',        action: 'kyc'        },
-  { to: '/orders',    icon: '📋', label: 'Órdenes',    action: 'orders'     },
-  { to: '/recharges', icon: '💰', label: 'Recargas',   action: 'recharges'  },
-  { to: '/admins',    icon: '🔑', label: 'Admins',     action: 'admins'     },
+  { to: '/',                icon: '▦',  label: 'Dashboard',       action: 'dashboard'   },
+  { to: '/users',           icon: '👥', label: 'Usuarios',        action: 'users'       },
+  { to: '/kyc',             icon: '🪪', label: 'KYC',             action: 'kyc'         },
+  { to: '/orders',          icon: '📋', label: 'Órdenes',         action: 'orders'      },
+  { to: '/recharges',       icon: '💰', label: 'Recargas',        action: 'recharges'   },
+  { to: '/withdrawals',     icon: '💸', label: 'Retiros',         action: 'withdrawals' },
+  { to: '/payment-methods', icon: '💳', label: 'Métodos de Pago', action: 'settings'    },
+  { to: '/admins',          icon: '🔑', label: 'Admins',          action: 'admins'      },
 ];
 
 const ROLE = {

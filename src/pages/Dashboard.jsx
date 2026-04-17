@@ -64,6 +64,17 @@ export default function Dashboard() {
       </section>
 
       <section className="section">
+        <div className="section-title">💸 Retiros</div>
+        <div className="stats-grid">
+          <Stat label="Pendientes"    value={data?.withdrawals?.pending}    color="#F59E0B" />
+          <Stat label="En proceso"    value={data?.withdrawals?.processing} color="#3B82F6" />
+          <Stat label="Monto pendiente"
+            value={data?.withdrawals?.pending_amount ? `$${parseFloat(data.withdrawals.pending_amount).toFixed(2)}` : '$0.00'}
+            color="#EF4444" />
+        </div>
+      </section>
+
+      <section className="section">
         <div className="section-title">🏦 Wallets</div>
         <div className="stats-grid">
           <Stat label="Saldo en circulación"

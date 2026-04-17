@@ -53,7 +53,7 @@ function AppRoutes() {
           <Layout><Admins /></Layout>
         </ProtectedRoute>
       } />
-      <Route path="*" element={<Navigate to="/" replace />} />
+      <Route path="*" element={<Navigate to={can('dashboard') ? '/' : '/recharges'} replace />} />
     </Routes>
   );
 }

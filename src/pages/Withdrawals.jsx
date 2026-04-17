@@ -1,12 +1,12 @@
-// src/pages/Recharges.jsx
+// src/pages/Withdrawals.jsx
 import { useEffect, useState, useCallback } from 'react';
 import { api } from '../lib/api';
 
 const fmt = d => d ? new Date(d).toLocaleString('es-VE', { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' }) : '—';
-const TABS = ['pending', 'approved', 'rejected'];
-const TAB_LABEL = { pending: '⏳ Pendientes', approved: '✅ Aprobadas', rejected: '❌ Rechazadas' };
+const TABS = ['pending', 'completed', 'rejected'];
+const TAB_LABEL = { pending: '⏳ Pendientes', completed: '✅ Completados', rejected: '❌ Rechazados' };
 
-export default function Recharges() {
+export default function Withdrawals() {
   const [status, setStatus]   = useState('pending');
   const [rows, setRows]       = useState([]);
   const [total, setTotal]     = useState(0);
@@ -20,7 +20,7 @@ export default function Recharges() {
   const load = useCallback(async () => {
     setL(true);
     try {
-      const r = await api.get(`/recharges?status=${status}&page=${page}&limit=20`);
+      const r = await api.get(`/withdrawals?status=${status}&page=${page}&limit=20`);
       setRows(r.data); setTotal(r.total);
     } finally { setL(false); }
   }, [status, page]);
@@ -30,7 +30,7 @@ export default function Recharges() {
   const approve = async () => {
     setActionL(true);
     try {
-      await api.post(`/recharges/${selected.id}/approve`);
+      await api.post(`/withdrawals/${selected.id}/approve`);
       setModal(null); setSel(null); load();
     } catch (err) { alert(err.message); }
     finally { setActionL(false); }
@@ -40,17 +40,25 @@ export default function Recharges() {
     if (!reason.trim()) { alert('Ingresa el motivo'); return; }
     setActionL(true);
     try {
-      await api.post(`/recharges/${selected.id}/reject`, { reason });
+      await api.post(`/withdrawals/${selected.id}/reject`, { reason });
       setModal(null); setSel(null); setReason(''); load();
     } catch (err) { alert(err.message); }
     finally { setActionL(false); }
   };
 
+  const getPayoutInfo = (row) => {
+    try {
+      const d = typeof row.payout_details === 'string'
+        ? JSON.parse(row.payout_details) : row.payout_details;
+      return Object.entries(d || {}).map(([k,v]) => `${k}: ${v}`).join(' · ') || '—';
+    } catch { return '—'; }
+  };
+
   return (
     <div className="page">
       <div className="page-header">
-        <h1>💰 Recargas</h1>
-        <span className="page-subtitle">Conciliación de pagos</span>
+        <h1>💸 Retiros</h1>
+        <span className="page-subtitle">Solicitudes de retiro de proveedores</span>
       </div>
 
       <div className="tabs">
@@ -68,21 +76,20 @@ export default function Recharges() {
             <table className="table">
               <thead>
                 <tr>
-                  <th>Usuario</th>
-                  <th>Método</th>
+                  <th>Proveedor</th>
                   <th>Monto</th>
-                  <th>Referencia</th>
-                  <th>Banco origen</th>
-                  <th>Fecha pago</th>
+                  <th>Método</th>
+                  <th>Datos de pago</th>
+                  <th>Saldo actual</th>
                   <th>Solicitado</th>
-                  {status === 'pending'  && <th>Acciones</th>}
-                  {status === 'rejected' && <th>Motivo</th>}
-                  {status === 'approved' && <th>Aprobado por</th>}
+                  {status === 'pending'   && <th>Acciones</th>}
+                  {status === 'completed' && <th>Procesado por</th>}
+                  {status === 'rejected'  && <th>Motivo</th>}
                 </tr>
               </thead>
               <tbody>
                 {rows.length === 0 && (
-                  <tr><td colSpan={9} className="empty">No hay recargas {status === 'pending' ? 'pendientes' : ''}</td></tr>
+                  <tr><td colSpan={7} className="empty">No hay retiros {status === 'pending' ? 'pendientes' : ''}</td></tr>
                 )}
                 {rows.map(r => (
                   <tr key={r.id}>
@@ -93,32 +100,35 @@ export default function Recharges() {
                         {r.phone && <span>{r.phone}</span>}
                       </div>
                     </td>
-                    <td>
-                      <span className="badge badge-blue">{r.payment_method_name || r.payment_method_type || '—'}</span>
-                    </td>
                     <td><strong className="amount">${parseFloat(r.amount).toFixed(2)}</strong></td>
-                    <td><code className="ref">{r.reference_number || '—'}</code></td>
-                    <td style={{ color: 'var(--text2)' }}>{r.origin_bank || '—'}</td>
-                    <td style={{ color: 'var(--text3)', fontSize: 12 }}>{fmt(r.payment_date)}</td>
+                    <td><span className="badge badge-blue">{r.payment_method_name || r.payment_method_type || '—'}</span></td>
+                    <td style={{ fontSize: 12, color: 'var(--text2)', maxWidth: 200 }}>
+                      <span style={{ wordBreak: 'break-all' }}>{getPayoutInfo(r)}</span>
+                    </td>
+                    <td>
+                      <span className={`amount`} style={{ color: parseFloat(r.current_balance) >= parseFloat(r.amount) ? 'var(--green)' : 'var(--red)' }}>
+                        ${parseFloat(r.current_balance || 0).toFixed(2)}
+                      </span>
+                    </td>
                     <td style={{ color: 'var(--text3)', fontSize: 12 }}>{fmt(r.created_at)}</td>
                     {status === 'pending' && (
                       <td>
                         <div className="action-btns">
-                          <button className="btn-approve" onClick={() => { setSel(r); setModal('approve'); }}>✓ Aprobar</button>
+                          <button className="btn-approve" onClick={() => { setSel(r); setModal('approve'); }}>✓ Pagar</button>
                           <button className="btn-reject"  onClick={() => { setSel(r); setModal('reject');  }}>✕ Rechazar</button>
                         </div>
                       </td>
                     )}
-                    {status === 'rejected' && (
-                      <td><span className="reject-reason">{r.rejection_reason}</span></td>
-                    )}
-                    {status === 'approved' && (
+                    {status === 'completed' && (
                       <td>
                         <div className="user-cell">
-                          <strong style={{ color: 'var(--green)' }}>{r.reviewed_by_name || '—'}</strong>
-                          <span style={{ fontSize: 11 }}>{fmt(r.reviewed_at)}</span>
+                          <span>{r.processed_by_name || '—'}</span>
+                          <span style={{ fontSize: 11 }}>{fmt(r.processed_at)}</span>
                         </div>
                       </td>
+                    )}
+                    {status === 'rejected' && (
+                      <td><span className="reject-reason">{r.admin_notes}</span></td>
                     )}
                   </tr>
                 ))}
@@ -138,19 +148,22 @@ export default function Recharges() {
       {modal === 'approve' && selected && (
         <div className="modal-overlay" onClick={() => setModal(null)}>
           <div className="modal" onClick={e => e.stopPropagation()}>
-            <h2>✅ Aprobar recarga</h2>
-            <p>¿Confirmas acreditar <strong className="amount">${parseFloat(selected.amount).toFixed(2)}</strong> a <strong>{selected.full_name}</strong>?</p>
+            <h2>✅ Confirmar pago de retiro</h2>
+            <p>¿Confirmas que pagaste <strong className="amount">${parseFloat(selected.amount).toFixed(2)}</strong> a <strong>{selected.full_name}</strong>?</p>
             <div className="info-grid" style={{ marginTop: 14 }}>
-              <div className="info-item"><label>Referencia</label><span><code className="ref">{selected.reference_number}</code></span></div>
-              <div className="info-item"><label>Banco</label><span>{selected.origin_bank || '—'}</span></div>
-              <div className="info-item"><label>Fecha pago</label><span>{fmt(selected.payment_date)}</span></div>
               <div className="info-item"><label>Método</label><span>{selected.payment_method_name || '—'}</span></div>
+              <div className="info-item"><label>Saldo actual</label><span className="amount">${parseFloat(selected.current_balance || 0).toFixed(2)}</span></div>
             </div>
-            {selected.notes && <p style={{ marginTop: 10, fontSize: 13, color: 'var(--text3)' }}>Nota: {selected.notes}</p>}
+            <div style={{ background: 'var(--surface2)', borderRadius: 8, padding: 12, marginTop: 12, fontSize: 13, color: 'var(--text2)' }}>
+              {getPayoutInfo(selected)}
+            </div>
+            <p style={{ color: 'var(--yellow)', fontSize: 13, marginTop: 10 }}>
+              ⚠️ Esto descontará ${parseFloat(selected.amount).toFixed(2)} del saldo del proveedor.
+            </p>
             <div className="modal-actions">
               <button className="btn-secondary" onClick={() => setModal(null)}>Cancelar</button>
               <button className="btn-approve-lg" onClick={approve} disabled={actionL}>
-                {actionL ? 'Aprobando...' : '✓ Confirmar aprobación'}
+                {actionL ? 'Procesando...' : '✓ Confirmar pago'}
               </button>
             </div>
           </div>
@@ -160,12 +173,12 @@ export default function Recharges() {
       {modal === 'reject' && selected && (
         <div className="modal-overlay" onClick={() => setModal(null)}>
           <div className="modal" onClick={e => e.stopPropagation()}>
-            <h2>❌ Rechazar recarga</h2>
-            <p>Recarga de <strong className="amount">${parseFloat(selected.amount).toFixed(2)}</strong> de <strong>{selected.full_name}</strong></p>
+            <h2>❌ Rechazar retiro</h2>
+            <p>Retiro de <strong className="amount">${parseFloat(selected.amount).toFixed(2)}</strong> de <strong>{selected.full_name}</strong></p>
             <div className="form-group" style={{ marginTop: 14 }}>
               <label>Motivo del rechazo *</label>
               <textarea rows={3} value={reason} onChange={e => setReason(e.target.value)}
-                placeholder="Ej: Referencia no encontrada, monto no coincide con el registrado..." />
+                placeholder="Ej: Datos de pago incorrectos, saldo insuficiente..." />
             </div>
             <div className="modal-actions">
               <button className="btn-secondary" onClick={() => setModal(null)}>Cancelar</button>

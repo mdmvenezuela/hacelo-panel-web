@@ -3,16 +3,11 @@ import { useEffect, useState, useCallback } from 'react';
 import { api } from '../lib/api';
 
 const fmt = d => d ? new Date(d).toLocaleString('es-VE', { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' }) : '—';
-
 const TABS = ['pending', 'approved', 'rejected'];
 const TAB_LABEL = { pending: '⏳ Pendientes', approved: '✅ Aprobadas', rejected: '❌ Rechazadas' };
-
 const DOC_LABELS = {
-  selfie_url:       'Selfie',
-  id_front_url:     'Cédula frente',
-  id_back_url:      'Cédula dorso',
-  rif_url:          'RIF',
-  video_selfie_url: 'Video selfie',
+  selfie_url: 'Selfie', id_front_url: 'Cédula frente', id_back_url: 'Cédula dorso',
+  rif_url: 'RIF', video_selfie_url: 'Video selfie',
 };
 
 export default function KYC() {
@@ -22,7 +17,7 @@ export default function KYC() {
   const [page, setPage]       = useState(1);
   const [loading, setL]       = useState(false);
   const [selected, setSel]    = useState(null);
-  const [modal, setModal]     = useState(null); // 'approve' | 'reject'
+  const [modal, setModal]     = useState(null);
   const [reason, setReason]   = useState('');
   const [actionL, setActionL] = useState(false);
   const [lightbox, setLb]     = useState(null);
@@ -39,20 +34,16 @@ export default function KYC() {
 
   const approve = async () => {
     setActionL(true);
-    try {
-      await api.post(`/kyc/${selected.id}/approve`);
-      setModal(null); setSel(null); load();
-    } catch (err) { alert(err.message); }
+    try { await api.post(`/kyc/${selected.id}/approve`); setModal(null); setSel(null); load(); }
+    catch (err) { alert(err.message); }
     finally { setActionL(false); }
   };
 
   const reject = async () => {
     if (!reason.trim()) { alert('Ingresa el motivo'); return; }
     setActionL(true);
-    try {
-      await api.post(`/kyc/${selected.id}/reject`, { reason });
-      setModal(null); setSel(null); setReason(''); load();
-    } catch (err) { alert(err.message); }
+    try { await api.post(`/kyc/${selected.id}/reject`, { reason }); setModal(null); setSel(null); setReason(''); load(); }
+    catch (err) { alert(err.message); }
     finally { setActionL(false); }
   };
 
@@ -84,7 +75,9 @@ export default function KYC() {
                   <th>Enviado</th>
                   <th>Documentos</th>
                   {status === 'pending'  && <th>Acciones</th>}
-                  {status === 'rejected' && <th>Motivo</th>}
+                  {status === 'approved' && <th>Aprobado por</th>}
+                  {status === 'rejected' && <th>Rechazado por</th>}
+                  {status !== 'pending'  && <th>Motivo/Fecha</th>}
                 </tr>
               </thead>
               <tbody>
@@ -108,13 +101,12 @@ export default function KYC() {
                         {Object.entries(DOC_LABELS).map(([key, label]) => k[key] && (
                           key === 'video_selfie_url' ? (
                             <a key={key} href={k[key]} target="_blank" rel="noreferrer"
-                              className="badge badge-blue" style={{ cursor: 'pointer', textDecoration: 'none' }}>
+                              className="badge badge-blue" style={{ cursor:'pointer', textDecoration:'none' }}>
                               🎥 Video
                             </a>
                           ) : (
                             <span key={key} className="badge badge-gray"
-                              style={{ cursor: 'zoom-in' }}
-                              onClick={() => setLb(k[key])}>
+                              style={{ cursor: 'zoom-in' }} onClick={() => setLb(k[key])}>
                               🖼 {label}
                             </span>
                           )
@@ -129,8 +121,23 @@ export default function KYC() {
                         </div>
                       </td>
                     )}
-                    {status === 'rejected' && (
-                      <td><span className="reject-reason">{k.rejection_reason}</span></td>
+                    {status !== 'pending' && (
+                      <td>
+                        <div className="user-cell">
+                          <strong style={{ color: status === 'approved' ? 'var(--green)' : 'var(--red)' }}>
+                            {k.reviewed_by_name || '—'}
+                          </strong>
+                          <span>{fmt(k.reviewed_at)}</span>
+                        </div>
+                      </td>
+                    )}
+                    {status !== 'pending' && (
+                      <td>
+                        {status === 'rejected'
+                          ? <span className="reject-reason">{k.rejection_reason}</span>
+                          : <span className="badge badge-green">Verificado</span>
+                        }
+                      </td>
                     )}
                   </tr>
                 ))}
@@ -147,22 +154,16 @@ export default function KYC() {
         </>
       )}
 
-      {/* Lightbox */}
-      {lightbox && (
-        <div className="lightbox" onClick={() => setLb(null)}>
-          <img src={lightbox} alt="Documento" />
-        </div>
-      )}
+      {lightbox && <div className="lightbox" onClick={() => setLb(null)}><img src={lightbox} alt="Documento" /></div>}
 
-      {/* Modal aprobar */}
       {modal === 'approve' && selected && (
         <div className="modal-overlay" onClick={() => setModal(null)}>
           <div className="modal" onClick={e => e.stopPropagation()}>
             <h2>✅ Aprobar KYC</h2>
             <p>¿Confirmas la verificación de <strong>{selected.full_name}</strong>?</p>
             <div className="info-grid" style={{ marginTop: 12 }}>
-              <div className="info-item"><label>Nombre en doc.</label><span>{selected.full_name_doc}</span></div>
-              <div className="info-item"><label>Cédula</label><span>{selected.id_number}</span></div>
+              <div className="info-item"><label>Nombre en doc.</label><span>{selected.full_name_doc || '—'}</span></div>
+              <div className="info-item"><label>Cédula</label><span>{selected.id_number || '—'}</span></div>
             </div>
             <p style={{ color: 'var(--text3)', fontSize: 13, marginTop: 8 }}>
               Se activará su cuenta como proveedor y recibirá una notificación.
@@ -177,7 +178,6 @@ export default function KYC() {
         </div>
       )}
 
-      {/* Modal rechazar */}
       {modal === 'reject' && selected && (
         <div className="modal-overlay" onClick={() => setModal(null)}>
           <div className="modal" onClick={e => e.stopPropagation()}>
