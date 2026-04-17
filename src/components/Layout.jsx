@@ -34,7 +34,7 @@ export default function Layout({ children }) {
         </div>
 
         <nav className="sidebar-nav">
-          {NAV.filter(item => (item.action)).map(item => (
+          {NAV.filter(item => can(item.action)).map(item => (
             <NavLink
               key={item.to}
               to={item.to}
