@@ -3,14 +3,14 @@ import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../lib/auth';
 
 const NAV = [
-  { to: '/',                icon: '▦',  label: 'Dashboard',       action: 'dashboard'   },
-  { to: '/users',           icon: '👥', label: 'Usuarios',        action: 'users'       },
-  { to: '/kyc',             icon: '🪪', label: 'KYC',             action: 'kyc'         },
-  { to: '/orders',          icon: '📋', label: 'Órdenes',         action: 'orders'      },
-  { to: '/recharges',       icon: '💰', label: 'Recargas',        action: 'recharges'   },
-  { to: '/withdrawals',     icon: '💸', label: 'Retiros',         action: 'withdrawals' },
-  { to: '/payment-methods', icon: '💳', label: 'Métodos de Pago', action: 'settings'    },
-  { to: '/admins',          icon: '🔑', label: 'Admins',          action: 'admins'      },
+  { to: '/',                icon: '▦',  label: 'Dashboard',       action: 'dashboard'        },
+  { to: '/users',           icon: '👥', label: 'Usuarios',        action: 'users'            },
+  { to: '/kyc',             icon: '🪪', label: 'KYC',             action: 'kyc'              },
+  { to: '/orders',          icon: '📋', label: 'Órdenes',         action: 'orders'           },
+  { to: '/recharges',       icon: '💰', label: 'Recargas',        action: 'recharges'        },
+  { to: '/withdrawals',     icon: '💸', label: 'Retiros',         action: 'withdrawals'      },
+  { to: '/payment-methods', icon: '💳', label: 'Métodos de Pago', action: 'payment-methods'  },
+  { to: '/admins',          icon: '🔑', label: 'Admins',          action: 'admins'           },
 ];
 
 const ROLE = {
@@ -53,7 +53,9 @@ export default function Layout({ children }) {
             <div className="user-name">{admin?.fullName}</div>
             <div className="user-role" style={{ color: rl.color }}>{rl.label}</div>
           </div>
-          <button className="logout-btn" onClick={() => { logout(); navigate('/login'); }} title="Cerrar sesión">⏻</button>
+          <button className="logout-btn"
+            onClick={() => { logout(); navigate('/login'); }}
+            title="Cerrar sesión">⏻</button>
         </div>
       </aside>
 

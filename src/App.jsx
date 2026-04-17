@@ -16,12 +16,19 @@ function ProtectedRoute({ children, action }) {
   const { admin, loading, can } = useAuth();
   if (loading) return <div className="loading-screen"><div className="spinner" /></div>;
   if (!admin)  return <Navigate to="/login" replace />;
-  if (action && !can(action)) return <Navigate to="/recharges" replace />;
+  // Si tiene acción y no puede, redirigir a la primera página que sí puede
+  if (action && !can(action)) {
+    if (can('dashboard'))        return <Navigate to="/" replace />;
+    if (can('recharges'))        return <Navigate to="/recharges" replace />;
+    return <Navigate to="/login" replace />;
+  }
   return children;
 }
 
 function AppRoutes() {
   const { can } = useAuth();
+  const home = can('dashboard') ? '/' : can('recharges') ? '/recharges' : '/login';
+
   return (
     <Routes>
       <Route path="/login" element={<Login />} />
@@ -51,12 +58,12 @@ function AppRoutes() {
         </ProtectedRoute>
       } />
       <Route path="/withdrawals" element={
-        <ProtectedRoute action="recharges">
+        <ProtectedRoute action="withdrawals">
           <Layout><Withdrawals /></Layout>
         </ProtectedRoute>
       } />
       <Route path="/payment-methods" element={
-        <ProtectedRoute action="settings">
+        <ProtectedRoute action="payment-methods">
           <Layout><PaymentMethods /></Layout>
         </ProtectedRoute>
       } />
@@ -65,7 +72,7 @@ function AppRoutes() {
           <Layout><Admins /></Layout>
         </ProtectedRoute>
       } />
-      <Route path="*" element={<Navigate to={can('dashboard') ? '/' : '/recharges'} replace />} />
+      <Route path="*" element={<Navigate to={home} replace />} />
     </Routes>
   );
 }

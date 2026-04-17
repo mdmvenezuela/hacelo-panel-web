@@ -32,9 +32,17 @@ export function AuthProvider({ children }) {
   const can = (action) => {
     if (!admin) return false;
     const perms = {
-      admin:       ['dashboard', 'users', 'kyc', 'orders', 'recharges', 'admins'],
-      moderator:   ['dashboard', 'users', 'kyc', 'orders', 'recharges'],
-      conciliator: ['recharges'],
+      admin: [
+        'dashboard', 'users', 'kyc', 'orders',
+        'recharges', 'withdrawals', 'payment-methods', 'admins',
+      ],
+      moderator: [
+        'dashboard', 'users', 'kyc', 'orders',
+        'recharges', 'withdrawals', 'payment-methods',
+      ],
+      conciliator: [
+        'recharges', 'withdrawals',
+      ],
     };
     return perms[admin.role]?.includes(action) ?? false;
   };
