@@ -8,6 +8,8 @@ import Users from './pages/Users';
 import KYC from './pages/KYC';
 import Orders from './pages/Orders';
 import Recharges from './pages/Recharges';
+import Withdrawals from './pages/Withdrawals';
+import PaymentMethods from './pages/PaymentMethods';
 import Admins from './pages/Admins';
 
 function ProtectedRoute({ children, action }) {
@@ -46,6 +48,16 @@ function AppRoutes() {
       <Route path="/recharges" element={
         <ProtectedRoute action="recharges">
           <Layout><Recharges /></Layout>
+        </ProtectedRoute>
+      } />
+      <Route path="/withdrawals" element={
+        <ProtectedRoute action="recharges">
+          <Layout><Withdrawals /></Layout>
+        </ProtectedRoute>
+      } />
+      <Route path="/payment-methods" element={
+        <ProtectedRoute action="settings">
+          <Layout><PaymentMethods /></Layout>
         </ProtectedRoute>
       } />
       <Route path="/admins" element={
