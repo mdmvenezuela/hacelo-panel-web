@@ -12,6 +12,7 @@ import Withdrawals from './pages/Withdrawals';
 import PaymentMethods from './pages/PaymentMethods';
 import Admins from './pages/Admins';
 import Zones from './pages/Zones';
+import Finance from './pages/Finance';
 
 function ProtectedRoute({ children, action }) {
   const { admin, loading, can } = useAuth();
@@ -76,6 +77,11 @@ function AppRoutes() {
       <Route path="/zones" element={
         <ProtectedRoute action="zones">
           <Layout><Zones /></Layout>
+        </ProtectedRoute>
+      } />
+      <Route path="/finance" element={
+        <ProtectedRoute action="finance">
+          <Layout><Finance /></Layout>
         </ProtectedRoute>
       } />
       <Route path="*" element={<Navigate to={home} replace />} />

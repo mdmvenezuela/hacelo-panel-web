@@ -34,11 +34,11 @@ export function AuthProvider({ children }) {
     const perms = {
       admin: [
         'dashboard', 'users', 'kyc', 'orders',
-        'recharges', 'withdrawals', 'payment-methods', 'admins', 'zones',
+        'recharges', 'withdrawals', 'payment-methods', 'zones', 'finance', 'admins',
       ],
       moderator: [
         'dashboard', 'users', 'kyc', 'orders',
-        'recharges', 'withdrawals', 'payment-methods',
+        'recharges', 'withdrawals', 'payment-methods', 'zones', 'finance',
       ],
       conciliator: [
         'recharges', 'withdrawals',
