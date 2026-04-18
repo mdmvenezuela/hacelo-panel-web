@@ -34,7 +34,7 @@ export function AuthProvider({ children }) {
     const perms = {
       admin: [
         'dashboard', 'users', 'kyc', 'orders',
-        'recharges', 'withdrawals', 'payment-methods', 'admins',
+        'recharges', 'withdrawals', 'payment-methods', 'admins', 'zones',
       ],
       moderator: [
         'dashboard', 'users', 'kyc', 'orders',
@@ -53,5 +53,6 @@ export function AuthProvider({ children }) {
     </AuthCtx.Provider>
   );
 }
+
 
 export const useAuth = () => useContext(AuthCtx);
