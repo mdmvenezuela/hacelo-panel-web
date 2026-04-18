@@ -34,7 +34,7 @@ export function AuthProvider({ children }) {
     const perms = {
       admin: [
         'dashboard', 'users', 'kyc', 'orders',
-        'recharges', 'withdrawals', 'payment-methods', 'admins', 'zones',
+        'recharges', 'withdrawals', 'payment-methods', 'admins',
       ],
       moderator: [
         'dashboard', 'users', 'kyc', 'orders',
