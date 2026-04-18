@@ -11,7 +11,6 @@ import Recharges from './pages/Recharges';
 import Withdrawals from './pages/Withdrawals';
 import PaymentMethods from './pages/PaymentMethods';
 import Admins from './pages/Admins';
-import Zones from './pages/Zones';
 
 function ProtectedRoute({ children, action }) {
   const { admin, loading, can } = useAuth();
@@ -71,11 +70,6 @@ function AppRoutes() {
       <Route path="/admins" element={
         <ProtectedRoute action="admins">
           <Layout><Admins /></Layout>
-        </ProtectedRoute>
-      } />
-      <Route path="/zones" element={
-        <ProtectedRoute action="zones">
-          <Layout><Zones /></Layout>
         </ProtectedRoute>
       } />
       <Route path="*" element={<Navigate to={home} replace />} />

@@ -38,7 +38,6 @@ export function AuthProvider({ children }) {
       ],
       moderator: [
         'dashboard', 'users', 'kyc', 'orders',
-        'recharges', 'withdrawals', 'payment-methods',
       ],
       conciliator: [
         'recharges', 'withdrawals',

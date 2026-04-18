@@ -10,7 +10,6 @@ const NAV = [
   { to: '/recharges',       icon: '💰', label: 'Recargas',        action: 'recharges'        },
   { to: '/withdrawals',     icon: '💸', label: 'Retiros',         action: 'withdrawals'      },
   { to: '/payment-methods', icon: '💳', label: 'Métodos de Pago', action: 'payment-methods'  },
-  { to: '/zones',           icon: '🗺️', label: 'Zonas',           action: 'zones'            },
   { to: '/admins',          icon: '🔑', label: 'Admins',          action: 'admins'           },
 ];
 
