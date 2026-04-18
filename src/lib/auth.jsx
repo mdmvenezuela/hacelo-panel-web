@@ -54,5 +54,4 @@ export function AuthProvider({ children }) {
   );
 }
 
-
 export const useAuth = () => useContext(AuthCtx);
