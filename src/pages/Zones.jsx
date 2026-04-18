@@ -7,6 +7,18 @@ const EMPTY_FORM = {
   latCenter: '', lngCenter: '', radiusKm: 15, sortOrder: 0,
 };
 
+// Municipios de Zulia precargados para referencia rápida
+const ZULIA_MUNICIPIOS = [
+  { name: 'Cabimas',        slug: 'cabimas',        lat: 10.3997,  lng: -71.4561 },
+  { name: 'Maracaibo',      slug: 'maracaibo',      lat: 10.6666,  lng: -71.6124 },
+  { name: 'Ciudad Ojeda',   slug: 'ciudad-ojeda',   lat: 10.1978,  lng: -71.3086 },
+  { name: 'Lagunillas',     slug: 'lagunillas',     lat: 10.1333,  lng: -71.2500 },
+  { name: 'Punto Fijo',     slug: 'punto-fijo',     lat: 11.7005,  lng: -70.2178 },
+  { name: 'Barquisimeto',   slug: 'barquisimeto',   lat: 10.0678,  lng: -69.3467 },
+  { name: 'San Francisco',  slug: 'san-francisco',  lat: 10.6059,  lng: -71.6442 },
+  { name: 'Machiques',      slug: 'machiques',      lat: 10.0617,  lng: -72.5561 },
+];
+
 export default function Zones() {
   const [rows, setRows]     = useState([]);
   const [loading, setL]     = useState(false);
@@ -18,8 +30,12 @@ export default function Zones() {
 
   const load = async () => {
     setL(true);
-    try { const r = await api.get('/zones'); setRows(r.data); }
-    finally { setL(false); }
+    try {
+      const r = await api.get('/zones');
+      setRows(r.data);
+    } catch (err) {
+      console.error('Error cargando zonas:', err.message);
+    } finally { setL(false); }
   };
 
   useEffect(() => { load(); }, []);
@@ -37,6 +53,17 @@ export default function Zones() {
       sortOrder: z.sort_order,
     });
     setSel(z); setError(''); setModal('edit');
+  };
+
+  const applyPreset = (preset) => {
+    setForm(f => ({
+      ...f,
+      name:      preset.name,
+      slug:      preset.slug,
+      state:     'Zulia',
+      latCenter: preset.lat,
+      lngCenter: preset.lng,
+    }));
   };
 
   const save = async (e) => {
@@ -59,6 +86,20 @@ export default function Zones() {
       <div className="page-header">
         <h1>🗺️ Zonas</h1>
         <span className="page-subtitle">Municipios y áreas de operación</span>
+      </div>
+
+      {/* Info box */}
+      <div style={{
+        background: 'var(--surface)', border: '1px solid var(--border)',
+        borderRadius: 8, padding: '14px 16px', marginBottom: 20,
+        fontSize: 13, color: 'var(--text2)', lineHeight: 1.6,
+      }}>
+        💡 <strong style={{ color: 'var(--text)' }}>¿Cómo obtener coordenadas?</strong>{' '}
+        Ve a <a href="https://maps.google.com" target="_blank" rel="noreferrer"
+          style={{ color: 'var(--orange)' }}>Google Maps</a>,
+        busca el municipio, haz clic derecho en el centro → copia las coordenadas.
+        El <strong>radio</strong> determina cuántos km alrededor del centro cubre la zona
+        (Cabimas completa ≈ 15 km).
       </div>
 
       <div style={{ marginBottom: 20 }}>
@@ -85,12 +126,23 @@ export default function Zones() {
               )}
               {rows.map(z => (
                 <tr key={z.id}>
-                  <td style={{ color: 'var(--text)', fontWeight: 700 }}>{z.name}</td>
+                  <td>
+                    <div className="user-cell">
+                      <strong>{z.name}</strong>
+                      <span style={{ fontSize: 11 }}>{z.slug}</span>
+                    </div>
+                  </td>
                   <td style={{ color: 'var(--text2)' }}>{z.state}</td>
                   <td>
-                    <code className="ref">
-                      {parseFloat(z.lat_center).toFixed(4)}, {parseFloat(z.lng_center).toFixed(4)}
-                    </code>
+                    <a
+                      href={`https://maps.google.com/?q=${z.lat_center},${z.lng_center}`}
+                      target="_blank" rel="noreferrer"
+                      style={{ textDecoration: 'none' }}
+                    >
+                      <code className="ref">
+                        {parseFloat(z.lat_center).toFixed(4)}, {parseFloat(z.lng_center).toFixed(4)} ↗
+                      </code>
+                    </a>
                   </td>
                   <td style={{ color: 'var(--text2)' }}>{z.radius_km} km</td>
                   <td>
@@ -122,17 +174,39 @@ export default function Zones() {
         </div>
       )}
 
+      {/* Modal crear/editar */}
       {(modal === 'create' || modal === 'edit') && (
         <div className="modal-overlay" onClick={() => setModal(null)}>
-          <div className="modal" style={{ maxWidth: 500 }} onClick={e => e.stopPropagation()}>
+          <div className="modal" style={{ maxWidth: 560 }} onClick={e => e.stopPropagation()}>
             <h2>{modal === 'create' ? '+ Nueva zona' : `✏️ Editar — ${selected?.name}`}</h2>
-            <p style={{ fontSize: 13, color: 'var(--text3)', marginBottom: 16 }}>
-              El centro y radio determinan qué usuarios pertenecen a esta zona.
-              Puedes obtener las coordenadas del centro en{' '}
-              <a href="https://maps.google.com" target="_blank" rel="noreferrer"
-                style={{ color: 'var(--orange)' }}>Google Maps</a>.
-            </p>
+
             {error && <div className="alert-error" style={{ marginBottom: 14 }}>{error}</div>}
+
+            {/* Municipios rápidos (solo en crear) */}
+            {modal === 'create' && (
+              <div style={{ marginBottom: 16 }}>
+                <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--text3)',
+                  textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 8 }}>
+                  Municipios de Zulia — clic para precargar
+                </div>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                  {ZULIA_MUNICIPIOS.map(p => (
+                    <button key={p.slug} type="button"
+                      onClick={() => applyPreset(p)}
+                      style={{
+                        background: form.slug === p.slug ? 'var(--orange)' : 'var(--surface2)',
+                        border: `1px solid ${form.slug === p.slug ? 'var(--orange)' : 'var(--border)'}`,
+                        borderRadius: 6, color: form.slug === p.slug ? '#fff' : 'var(--text2)',
+                        padding: '5px 12px', fontSize: 12, fontWeight: 600, cursor: 'pointer',
+                        transition: 'all 0.15s',
+                      }}>
+                      {p.name}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
             <form onSubmit={save}>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
                 <div className="form-group" style={{ marginBottom: 0 }}>
@@ -144,7 +218,7 @@ export default function Zones() {
                 <div className="form-group" style={{ marginBottom: 0 }}>
                   <label>Slug * (sin espacios)</label>
                   <input required value={form.slug}
-                    onChange={e => setForm(f => ({ ...f, slug: e.target.value.toLowerCase().replace(/\s/g,'-') }))}
+                    onChange={e => setForm(f => ({ ...f, slug: e.target.value.toLowerCase().replace(/\s+/g, '-') }))}
                     placeholder="Ej: cabimas"
                     disabled={modal === 'edit'} />
                 </div>
@@ -155,8 +229,8 @@ export default function Zones() {
                     placeholder="Ej: Zulia" />
                 </div>
                 <div className="form-group" style={{ marginBottom: 0 }}>
-                  <label>Radio (km)</label>
-                  <input type="number" step="0.5" value={form.radiusKm}
+                  <label>Radio de cobertura (km)</label>
+                  <input type="number" step="0.5" min="1" value={form.radiusKm}
                     onChange={e => setForm(f => ({ ...f, radiusKm: parseFloat(e.target.value) }))} />
                 </div>
                 <div className="form-group" style={{ marginBottom: 0 }}>
@@ -171,24 +245,21 @@ export default function Zones() {
                     onChange={e => setForm(f => ({ ...f, lngCenter: e.target.value }))}
                     placeholder="Ej: -71.4561" />
                 </div>
-                <div className="form-group" style={{ marginBottom: 0, gridColumn: '1 / -1' }}>
+                <div className="form-group" style={{ marginBottom: 0 }}>
                   <label>Orden</label>
                   <input type="number" value={form.sortOrder}
                     onChange={e => setForm(f => ({ ...f, sortOrder: parseInt(e.target.value) }))} />
                 </div>
+                <div style={{ display: 'flex', alignItems: 'flex-end', paddingBottom: 2 }}>
+                  {form.latCenter && form.lngCenter && (
+                    <a href={`https://maps.google.com/?q=${form.latCenter},${form.lngCenter}`}
+                      target="_blank" rel="noreferrer"
+                      style={{ fontSize: 12, color: 'var(--blue)', textDecoration: 'none', fontWeight: 600 }}>
+                      📍 Ver en Google Maps ↗
+                    </a>
+                  )}
+                </div>
               </div>
-
-              {/* Preview coordenadas */}
-              {form.latCenter && form.lngCenter && (
-                <a
-                  href={`https://maps.google.com/?q=${form.latCenter},${form.lngCenter}`}
-                  target="_blank" rel="noreferrer"
-                  style={{ display: 'block', marginTop: 12, fontSize: 12,
-                    color: 'var(--blue)', textDecoration: 'none' }}
-                >
-                  📍 Ver coordenadas en Google Maps ↗
-                </a>
-              )}
 
               <div className="modal-actions" style={{ marginTop: 20 }}>
                 <button type="button" className="btn-secondary"
